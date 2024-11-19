@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  profile       Profile?
+  secret        UserSecret?
+  session       Session[]
+  order         Order[]
+  cardDetails   CardDetails[]
+  help_feedback Help_Feedback[]
+  review        Reviews[]
+  favorite      Favorites[]
+  userSettings  UserSettings?
+  createdAt     DateTime        @default(now())
+}
+
+model Profile {
+  id           String @id @default(uuid())
+  address      String
+  contact      String
+  gender       String
+  country      String
+  city         String
+  state        String
+  postalCode   String
+  user_profile User   @relation(fields: [userId], references: [id])
+  userId       String @unique
+}
+
+model UserSecret {
+  id          String @id @default(uuid())
+  password    String
+  // OTP         String
+  user_Secret User   @relation(fields: [userId], references: [id])
+  userId      String @unique
+}
+
+model Session {
+  id           String @id @default(uuid())
+  refreshToken String
+  user_session User   @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Restaurant {
+  id                  String      @id @default(uuid())
+  res_name            String
+  avgRestaurantRating Int?
+  discount            Int?
+  business_email_id   String
+  business_Contact    String
+  address             String
+  business_website    String
+  opening_time        String
+  closing_time        String
+  food                Foods[]
+  favorites           Favorites[]
+  review              Reviews[]
+}
+
+model Foods {
+  id            String @id @default(uuid())
+  foodName      String
+  foodPrice     Int
+  avgFoodRating Int?
+
+  res_food        Restaurant   @relation(fields: [restaurantId], references: [id])
+  restaurantId    String
+  foodDescription String
+  orderItems      OrderItems[]
+  reviews         Reviews[]
+  createdAt       DateTime     @default(now())
+}
+
+model Favorites {
+  id                  String     @id @default(uuid())
+  favorited_by_user   User       @relation(fields: [userId], references: [id])
+  userId              String
+  restaurant_favorite Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId        String
+}
+
+model Order {
+  id           String       @id @default(uuid())
+  total_amount Int
+  card_type    String
+  order_type   Order_Type   @default(DELIVERY)
+  status       Status       @default(PENDING)
+  user_order   User         @relation(fields: [userId], references: [id])
+  userId       String
+  delivery_fee Int?
+  tax          String
+  orderItems   OrderItems[]
+}
+
+model OrderItems {
+  id          String @id @default(uuid())
+  quantity    Int
+  order_items Order  @relation(fields: [orderId], references: [id])
+  orderId     String
+  food_items  Foods  @relation(fields: [foodId], references: [id])
+  foodId      String
+  // delivery_fees  Int
+}
+
+model CardDetails {
+  id          String @id @default(uuid())
+  card_holder String
+  card_number String
+  exp_date    String
+  CVV         String
+  user_card   User   @relation(fields: [userId], references: [id])
+  userId      String
+}
+
+model Help_Feedback {
+  id                 String @id @default(uuid())
+  subject            String
+  description        String
+  image              String
+  user_help_feedback User   @relation(fields: [userId], references: [id])
+  userId             String
+}
+
+model Settings {
+  id               String   @id @default(uuid())
+  privacyPolicy    String
+  terms_conditions String
+  aboutApp         String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model UserSettings {
+  id            String  @id @default(uuid())
+  notifications Boolean @default(true)
+  user          User    @relation(fields: [userId], references: [id])
+  userId        String  @unique
+}
+
+model Reviews {
+  id                String     @id @default(uuid())
+  comment           String
+  rating            Int
+  reply             Replies[]
+  reviewed_by_user  User       @relation(fields: [userId], references: [id])
+  userId            String
+  food_review       Foods      @relation(fields: [foodId], references: [id])
+  foodId            String
+  restaurant_review Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId      String
+}
+
+model Replies {
+  id           String  @id @default(uuid())
+  reply        String
+  review_reply Reviews @relation(fields: [reviewsId], references: [id])
+  reviewsId    String
+}
+
+model Chat {
+  id String @id @default(uuid())
+  userOne User @relation(fields: [userOneId], references: [id])
+  userOneId    String
+  userTwo  User @relation(fields: [userTwoId], references: [id])
+  userTwoId    String
+}
+
+enum Order_Type {
+  DELIVERY
+  PICKUP
+}
+
+enum Status {
+  DELIVERED
+  PENDING
+  CANCELLED
+}
