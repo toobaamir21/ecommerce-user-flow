@@ -117,14 +117,23 @@ model Order {
 }
 
 model OrderItems {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   quantity    Int
-  order_items Order    @relation(fields: [orderId], references: [id])
+  order_items Order               @relation(fields: [orderId], references: [id])
   orderId     String
-  food_items  Foods    @relation(fields: [foodId], references: [id])
+  food_items  Foods               @relation(fields: [foodId], references: [id])
   foodId      String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime            @default(now())
+  progress    OrderItemProgress[]
   // delivery_fees  Int
+}
+
+model OrderItemProgress {
+  id             String         @id @default(uuid())
+  progressStatus ProgressStatus
+  timestamp      DateTime       @default(now())
+  orderItem      OrderItems     @relation(fields: [orderItemId], references: [id])
+  orderItemId    String
 }
 
 model Shipping_Address {
@@ -134,7 +143,7 @@ model Shipping_Address {
   city       String
   state      String
   postalCode String
-}                        
+}
 
 model CardDetails {
   id          String   @id @default(uuid())
@@ -212,15 +221,15 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   message   String
-  chat_msgs Chat     @relation(fields: [chatId], references: [id])
+  chat_msgs Chat      @relation(fields: [chatId], references: [id])
   chatId    String
-  sender    User     @relation(fields: [senderId], references: [id])
+  sender    User      @relation(fields: [senderId], references: [id])
   senderId  String
-  seen      Boolean  @default(false)
+  seen      Boolean   @default(false)
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 enum Order_Type {
@@ -229,7 +238,15 @@ enum Order_Type {
 }
 
 enum Status {
-  DELIVERED
   PENDING
+  DELIVERED
   CANCELLED
+}
+
+enum ProgressStatus {
+  PLACED
+  PROCEED
+  READY_FOR_PICKUP
+  ON_THE_WAY
+  RECEIVED
 }
